@@ -5,6 +5,7 @@ import type { Activity, Expense, Friend, Group, User } from "./types";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
 import { Input } from "./components/ui/input";
+import { GroupDetail } from "./components/GroupDetail";
 
 type AuthMode = "login" | "signup";
 type View = "dashboard" | "friends" | "groups" | "expenses" | "activity";
@@ -19,6 +20,7 @@ function App() {
   const [token, setToken] = useState<string>(() => localStorage.getItem("splitly_token") ?? "");
   const [mode, setMode] = useState<AuthMode>("login");
   const [view, setView] = useState<View>("dashboard");
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -282,7 +284,14 @@ function App() {
 
         <nav className="mb-6 flex flex-wrap gap-2">
           {(["dashboard", "friends", "groups", "expenses", "activity"] as View[]).map((v) => (
-            <Button key={v} variant={view === v ? "default" : "outline"} onClick={() => setView(v)}>
+            <Button
+              key={v}
+              variant={view === v ? "default" : "outline"}
+              onClick={() => {
+                setView(v);
+                setSelectedGroupId(null);
+              }}
+            >
               {v[0].toUpperCase() + v.slice(1)}
             </Button>
           ))}
@@ -399,7 +408,18 @@ function App() {
           </section>
         )}
 
-        {view === "groups" && (
+        {view === "groups" && selectedGroupId && user && (
+          <GroupDetail
+            token={token}
+            groupId={selectedGroupId}
+            currentUserId={user.id}
+            defaultCurrency={user.defaultCurrency}
+            onBack={() => setSelectedGroupId(null)}
+            onChanged={() => refreshData(token)}
+          />
+        )}
+
+        {view === "groups" && !selectedGroupId && (
           <section className="grid gap-4 lg:grid-cols-3">
             <Card>
               <p className="mb-2 text-xs uppercase tracking-[0.2em]">Create Group</p>
@@ -412,7 +432,12 @@ function App() {
               <p className="mb-2 text-xs uppercase tracking-[0.2em]">Your Groups</p>
               <div className="space-y-3">
                 {groups.map((group) => (
-                  <div key={group.id} className="rounded-xl bg-shell p-3">
+                  <button
+                    key={group.id}
+                    type="button"
+                    onClick={() => setSelectedGroupId(group.id)}
+                    className="w-full rounded-xl bg-shell p-3 text-left transition hover:bg-aqua/30"
+                  >
                     <p className="font-semibold">{group.name}</p>
                     <p className="text-sm text-ink/70">{group.description || "No description"}</p>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
@@ -420,7 +445,7 @@ function App() {
                       <span className="rounded-full bg-white px-2 py-1">{group.expenseCount} expenses</span>
                       <span className="rounded-full bg-white px-2 py-1">{formatMoney(group.totalSpentCents)}</span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </Card>

@@ -300,6 +300,36 @@ app.get("/api/groups", authMiddleware, async (req, res, next) => {
   }
 });
 
+app.get("/api/groups/:id", authMiddleware, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findFirst({
+      where: { id: req.params.id, members: { some: { userId: req.authUser!.userId } } },
+      include: {
+        members: { include: { user: true } },
+        expenses: { include: { splits: true }, orderBy: { date: "desc" } },
+        _count: { select: { members: true, expenses: true } }
+      }
+    });
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    return res.json({
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      members: group.members.map((m) => ({ id: m.user.id, name: m.user.name, role: m.role })),
+      memberCount: group._count.members,
+      expenseCount: group._count.expenses,
+      totalSpentCents: group.expenses.reduce((acc, e) => acc + e.amountCents, 0),
+      expenses: group.expenses
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 app.post("/api/groups", authMiddleware, async (req, res, next) => {
   try {
     const parsed = createGroupSchema.parse(req.body);
@@ -500,36 +530,116 @@ app.get("/api/expenses", authMiddleware, async (req, res, next) => {
   }
 });
 
+const updateExpenseSchema = z.object({
+  description: z.string().min(2).optional(),
+  amountCents: z.number().int().positive().optional(),
+  currency: z.string().length(3).optional(),
+  date: z.coerce.date().optional(),
+  payerId: z.string().optional(),
+  splitType: z.nativeEnum(ExpenseSplitType).optional(),
+  participantSplits: z.array(
+    z.object({
+      userId: z.string(),
+      exactAmountCents: z.number().int().nonnegative().optional(),
+      percentage: z.number().nonnegative().optional(),
+      shares: z.number().int().nonnegative().optional()
+    })
+  ).min(1).optional(),
+  category: z.string().optional(),
+  note: z.string().optional()
+});
+
+async function assertCanManageExpense(expense: { createdById: string; payerId: string; groupId: string | null }, userId: string) {
+  if (expense.createdById === userId || expense.payerId === userId) return true;
+  if (!expense.groupId) return false;
+  const membership = await prisma.groupMember.findFirst({ where: { groupId: expense.groupId, userId } });
+  return Boolean(membership);
+}
+
 app.patch("/api/expenses/:id", authMiddleware, async (req, res, next) => {
   try {
-    const schema = z.object({
-      description: z.string().min(2).optional(),
-      category: z.string().optional(),
-      note: z.string().optional(),
-      date: z.coerce.date().optional()
-    });
-    const parsed = schema.parse(req.body);
+    const parsed = updateExpenseSchema.parse(req.body);
+    const myId = req.authUser!.userId;
 
     const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
     if (!existing) {
       return res.status(404).json({ message: "Expense not found" });
     }
 
+    if (!(await assertCanManageExpense(existing, myId))) {
+      return res.status(403).json({ message: "Not allowed to edit this expense" });
+    }
+
+    const amountCents = parsed.amountCents ?? existing.amountCents;
+    const splitType = parsed.splitType ?? existing.splitType;
+
+    let splitsUpdate: { deleteMany: Record<string, never>; create: ReturnType<typeof computeSplits> } | undefined;
+    if (parsed.participantSplits || parsed.amountCents !== undefined || parsed.splitType !== undefined) {
+      const existingSplits = await prisma.expenseSplit.findMany({ where: { expenseId: existing.id } });
+      const participants = parsed.participantSplits ?? existingSplits.map((s) => ({
+        userId: s.userId,
+        exactAmountCents: s.exactAmountCents ?? undefined,
+        percentage: s.percentage ? Number(s.percentage) : undefined,
+        shares: s.shares ?? undefined
+      }));
+      splitsUpdate = { deleteMany: {}, create: computeSplits(amountCents, splitType, participants) };
+    }
+
     const updated = await prisma.expense.update({
       where: { id: req.params.id },
-      data: parsed
+      data: {
+        description: parsed.description,
+        category: parsed.category,
+        note: parsed.note,
+        date: parsed.date,
+        amountCents: parsed.amountCents,
+        currency: parsed.currency?.toUpperCase(),
+        payerId: parsed.payerId,
+        splitType: parsed.splitType,
+        ...(splitsUpdate ? { splits: splitsUpdate } : {})
+      },
+      include: { splits: true }
     });
 
     await prisma.activityLog.create({
       data: {
         type: ActivityType.EXPENSE_UPDATED,
-        actorId: req.authUser!.userId,
+        actorId: myId,
         groupId: existing.groupId ?? undefined,
         expenseId: existing.id
       }
     });
 
     return res.json(updated);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.delete("/api/expenses/:id", authMiddleware, async (req, res, next) => {
+  try {
+    const myId = req.authUser!.userId;
+    const existing = await prisma.expense.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    if (!(await assertCanManageExpense(existing, myId))) {
+      return res.status(403).json({ message: "Not allowed to delete this expense" });
+    }
+
+    await prisma.expense.delete({ where: { id: req.params.id } });
+
+    await prisma.activityLog.create({
+      data: {
+        type: ActivityType.EXPENSE_DELETED,
+        actorId: myId,
+        groupId: existing.groupId ?? undefined,
+        payload: { description: existing.description, amountCents: existing.amountCents }
+      }
+    });
+
+    return res.status(204).send();
   } catch (error) {
     return next(error);
   }

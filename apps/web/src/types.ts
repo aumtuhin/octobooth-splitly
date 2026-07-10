@@ -25,6 +25,10 @@ export type Group = {
   totalSpentCents: number;
 };
 
+export type GroupDetail = Group & {
+  expenses: Expense[];
+};
+
 export type Expense = {
   id: string;
   description: string;
