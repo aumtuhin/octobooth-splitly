@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Sora", system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(245, 180, 135, 0.4), transparent 35%),
+    radial-gradient(circle at 90% 20%, rgba(126, 201, 195, 0.35), transparent 40%),
+    linear-gradient(180deg, #faf9f5 0%, #f6f5f0 100%);
+  color: #101418;
+}
+
+#root {
+  min-height: 100vh;
+}

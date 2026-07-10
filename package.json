@@ -1,0 +1,23 @@
+{
+  "name": "splitly",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,green \"npm run dev -w @splitly/api\" \"npm run dev -w @splitly/web\"",
+    "build": "npm run build -w @splitly/api && npm run build -w @splitly/web",
+    "test": "npm run test -w @splitly/api",
+    "lint": "npm run lint -w @splitly/api && npm run lint -w @splitly/web",
+    "db:setup": "npm run prisma:generate -w @splitly/api && npm run prisma:migrate:dev -w @splitly/api && npm run prisma:seed -w @splitly/api",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:migrate": "npm run prisma:migrate -w @splitly/api",
+    "db:seed": "npm run prisma:seed -w @splitly/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
