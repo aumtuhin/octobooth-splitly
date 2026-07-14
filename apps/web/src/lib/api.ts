@@ -1,4 +1,4 @@
-import type { Activity, Expense, Friend, Group, User } from "../types";
+import type { Activity, Expense, Friend, Group, GroupDetail, User } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 let resolvedApiBase: string | null = null;
@@ -92,6 +92,9 @@ export const api = {
   groups(token: string) {
     return request<Group[]>("/groups", {}, token);
   },
+  getGroup(token: string, id: string) {
+    return request<GroupDetail>(`/groups/${id}`, {}, token);
+  },
   createGroup(token: string, payload: { name: string; description?: string; memberIds?: string[] }) {
     return request("/groups", { method: "POST", body: JSON.stringify(payload) }, token);
   },
@@ -100,6 +103,12 @@ export const api = {
   },
   createExpense(token: string, payload: Record<string, unknown>) {
     return request("/expenses", { method: "POST", body: JSON.stringify(payload) }, token);
+  },
+  updateExpense(token: string, id: string, payload: Record<string, unknown>) {
+    return request<Expense>(`/expenses/${id}`, { method: "PATCH", body: JSON.stringify(payload) }, token);
+  },
+  deleteExpense(token: string, id: string) {
+    return request<void>(`/expenses/${id}`, { method: "DELETE" }, token);
   },
   balances(token: string, groupId?: string) {
     const qs = groupId ? `?groupId=${groupId}` : "";
