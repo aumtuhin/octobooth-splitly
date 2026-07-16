@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "../prisma.js";
 import { signToken } from "../lib/jwt.js";
 import { toPublicUser } from "../lib/serializers.js";
+import { authLimiter } from "../middleware/rateLimit.js";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ const loginSchema = z.object({
   password: z.string().min(1)
 });
 
-router.post("/signup", async (req, res, next) => {
+router.post("/signup", authLimiter, async (req, res, next) => {
   try {
     const parsed = signupSchema.parse(req.body);
     const existing = await prisma.user.findFirst({
@@ -50,7 +51,7 @@ router.post("/signup", async (req, res, next) => {
   }
 });
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", authLimiter, async (req, res, next) => {
   try {
     const parsed = loginSchema.parse(req.body);
     const user = await prisma.user.findUnique({ where: { email: parsed.email } });
