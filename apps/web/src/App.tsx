@@ -11,6 +11,7 @@ import { GroupsView, type GroupFormState } from "./components/GroupsView";
 import { ExpensesView } from "./components/ExpensesView";
 import { ActivityView } from "./components/ActivityView";
 import { GroupDetail } from "./components/GroupDetail";
+import { clearStoredToken, getStoredToken, setStoredToken } from "./lib/storage";
 
 type DashboardData = {
   totalBalanceCents: number;
@@ -19,7 +20,8 @@ type DashboardData = {
 };
 
 function App() {
-  const [token, setToken] = useState<string>(() => localStorage.getItem("splitly_token") ?? "");
+  const [token, setToken] = useState<string>("");
+  const [tokenChecked, setTokenChecked] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [view, setView] = useState<View>("dashboard");
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -79,11 +81,18 @@ function App() {
   }
 
   useEffect(() => {
+    getStoredToken().then((stored) => {
+      if (stored) setToken(stored);
+      setTokenChecked(true);
+    });
+  }, []);
+
+  useEffect(() => {
     if (!token) return;
     setLoading(true);
     refreshData(token)
       .catch((err: Error) => {
-        localStorage.removeItem("splitly_token");
+        void clearStoredToken();
         setToken("");
         setError(err.message);
       })
@@ -119,7 +128,7 @@ function App() {
           : await api.login({ email: authForm.email, password: authForm.password });
 
       setToken(response.token);
-      localStorage.setItem("splitly_token", response.token);
+      await setStoredToken(response.token);
       setUser(response.user);
     } catch (err) {
       setError((err as Error).message);
@@ -128,8 +137,8 @@ function App() {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("splitly_token");
+  async function logout() {
+    await clearStoredToken();
     setToken("");
     setUser(null);
   }
@@ -224,6 +233,14 @@ function App() {
     } catch (err) {
       setError((err as Error).message);
     }
+  }
+
+  if (!tokenChecked) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-shell text-ink">
+        <p className="text-sm">Loading Splitly...</p>
+      </main>
+    );
   }
 
   if (!token) {
