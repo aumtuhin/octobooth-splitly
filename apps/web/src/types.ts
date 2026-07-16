@@ -62,3 +62,14 @@ export type Activity = {
   };
   payload?: Record<string, unknown>;
 };
+
+export type SimplifiedDebt = {
+  fromUserId: string;
+  toUserId: string;
+  amountCents: number;
+};
+
+export type FriendRequestsPayload = {
+  incoming: Array<Record<string, unknown>>;
+  outgoing: Array<Record<string, unknown>>;
+};

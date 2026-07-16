@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Pencil, Plus, Trash2, Users as UsersIcon } from "lucide-react";
 import { api, formatMoney } from "../lib/api";
-import type { Expense, GroupDetail as GroupDetailType } from "../types";
+import type { Expense, GroupDetail as GroupDetailType, SimplifiedDebt } from "../types";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
-
-type SimplifiedDebt = { fromUserId: string; toUserId: string; amountCents: number };
 
 type Props = {
   token: string;
