@@ -12,7 +12,9 @@
     "cap:add:android": "cap add android",
     "cap:add:ios": "cap add ios",
     "cap:open:android": "cap open android",
-    "cap:open:ios": "cap open ios"
+    "cap:open:ios": "cap open ios",
+    "cap:run:android": "npm run cap:sync && cap run android",
+    "cap:run:ios": "npm run cap:sync && cap run ios"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",
