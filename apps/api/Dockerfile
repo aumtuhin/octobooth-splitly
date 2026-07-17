@@ -1,5 +1,5 @@
 # Build context is the monorepo root, e.g.:
-#   fly deploy --config apps/api/fly.toml .
+#   fly deploy .   (run from the repo root, where fly.toml lives)
 FROM node:20-alpine AS builder
 WORKDIR /app
 
