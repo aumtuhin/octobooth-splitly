@@ -1,0 +1,15 @@
+{
+  // Cloudflare Workers static-assets hosting for the web SPA.
+  // The Workers Builds pipeline runs (from the repo root):
+  //   build:  npm install && npm run build -w @splitly/web
+  //   deploy: npx wrangler deploy
+  // which uploads the built assets in apps/web/dist as a static site.
+  "name": "octobooth-splitly",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./apps/web/dist",
+    // Serve index.html for unknown paths so client-side views survive
+    // refresh / deep-linking (this is the SPA fallback; no server code).
+    "not_found_handling": "single-page-application"
+  }
+}
