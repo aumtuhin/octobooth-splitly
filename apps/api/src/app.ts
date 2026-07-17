@@ -4,12 +4,13 @@ import express from "express";
 import morgan from "morgan";
 import path from "node:path";
 import { uploadDir } from "./lib/upload.js";
+import { corsOptions } from "./lib/cors.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { apiLimiter } from "./middleware/rateLimit.js";
 import apiRouter from "./routes/index.js";
 
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.resolve(uploadDir)));
