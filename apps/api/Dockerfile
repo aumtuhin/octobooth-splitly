@@ -25,4 +25,6 @@ COPY apps/api/prisma ./apps/api/prisma
 WORKDIR /app/apps/api
 EXPOSE 4000
 
-CMD ["node", "dist/src/server.js"]
+# Apply pending migrations on the app machine (where the /data volume is
+# mounted), then start the server. migrate deploy is idempotent.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/server.js"]

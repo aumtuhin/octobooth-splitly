@@ -22,8 +22,12 @@ primary_region = "ams"
   source = "splitly_data"
   destination = "/data"
 
-[deploy]
-  release_command = "npx prisma migrate deploy"
+# NOTE: migrations are intentionally NOT run via a [deploy] release_command.
+# Fly release-command VMs do not mount volumes, so `prisma migrate deploy`
+# there would apply the schema to a throwaway filesystem, leaving the real
+# SQLite DB on the /data volume empty. Instead the container runs
+# `prisma migrate deploy` at startup (see apps/api/Dockerfile CMD), where the
+# volume IS mounted. `migrate deploy` is idempotent, so this is safe on every boot.
 
 [http_service]
   internal_port = 4000
