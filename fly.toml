@@ -14,6 +14,10 @@ primary_region = "ams"
   PORT = "4000"
   DATABASE_URL = "file:/data/prod.db"
   UPLOAD_DIR = "/data/uploads"
+  # Comma-separated browser origins allowed by CORS. localhost (any port)
+  # and the Capacitor mobile webviews are always allowed in code, so only
+  # deployed web origins need listing here.
+  CORS_ALLOWED_ORIGINS = "https://octobooth-splitly.dev-aumtuhin.workers.dev"
 
 # JWT_SECRET is NOT set here — it's a secret, set it via:
 #   fly secrets set JWT_SECRET=... --app splitly-api
