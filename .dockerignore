@@ -1,0 +1,13 @@
+node_modules
+apps/*/node_modules
+apps/*/dist
+apps/web/android
+apps/web/ios
+apps/api/uploads
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+.env
+apps/*/.env
+.git
+.gitignore
+*.md

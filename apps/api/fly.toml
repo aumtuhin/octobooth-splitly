@@ -1,0 +1,42 @@
+# Deploy from the monorepo root:
+#   fly deploy --config apps/api/fly.toml .
+#
+# app: must be globally unique across all of Fly.io — change this before first deploy.
+app = "splitly-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  PORT = "4000"
+  DATABASE_URL = "file:/data/prod.db"
+  UPLOAD_DIR = "/data/uploads"
+
+# JWT_SECRET is NOT set here — it's a secret, set it via:
+#   fly secrets set JWT_SECRET=... --app splitly-api
+
+[[mounts]]
+  source = "splitly_data"
+  destination = "/data"
+
+[deploy]
+  release_command = "npx prisma migrate deploy"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
