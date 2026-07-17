@@ -5,7 +5,7 @@
 #
 # app: must be globally unique across all of Fly.io — change this before first deploy.
 app = "splitly-api"
-primary_region = "iad"
+primary_region = "ams"
 
 [build]
   dockerfile = "apps/api/Dockerfile"
