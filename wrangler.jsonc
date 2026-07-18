@@ -11,5 +11,22 @@
     // Serve index.html for unknown paths so client-side views survive
     // refresh / deep-linking (this is the SPA fallback; no server code).
     "not_found_handling": "single-page-application"
+  },
+  // Observability: mirrors what was enabled in the Cloudflare dashboard so
+  // the setting persists across deploys (logs on, traces off).
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
   }
 }
