@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -55,16 +55,30 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
     steps:
       - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@v3
-        id: filter
         with:
-          filters: |
-            api:
-              - 'apps/api/**'
-              - 'fly.toml'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/ci.yml'
+          fetch-depth: 0
+      # Native git-diff instead of a third-party action (avoids the Node 20
+      # deprecation warning and one less dependency). Only meaningful on
+      # push to main, which is the only case the deploy gate uses.
+      - id: filter
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "api=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          before="${{ github.event.before }}"
+          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+            # New branch / no comparable base — deploy to be safe.
+            echo "api=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only "$before" "${{ github.sha }}")
+          if echo "$changed" | grep -qE '^(apps/api/|fly\.toml$|package\.json$|package-lock\.json$|\.github/workflows/ci\.yml$)'; then
+            echo "api=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "api=false" >> "$GITHUB_OUTPUT"
+          fi
 
   deploy-api:
     name: Deploy API to Fly.io
