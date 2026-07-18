@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (Neon PgBouncer) for the app runtime.
+  url       = env("DATABASE_URL")
+  // Direct (unpooled) connection used for migrations / introspection.
+  directUrl = env("DIRECT_URL")
 }
 
 enum FriendRequestStatus {
