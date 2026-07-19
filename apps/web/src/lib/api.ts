@@ -74,6 +74,18 @@ export const api = {
   me(token: string) {
     return request<User>("/me", {}, token);
   },
+  updateProfile(
+    token: string,
+    payload: Partial<{ name: string; username: string; defaultCurrency: string; avatarStyle: string; avatarSeed: string }>
+  ) {
+    return request<User>("/me", { method: "PATCH", body: JSON.stringify(payload) }, token);
+  },
+  changePassword(token: string, currentPassword: string, newPassword: string) {
+    return request<void>("/me/password", { method: "POST", body: JSON.stringify({ currentPassword, newPassword }) }, token);
+  },
+  deleteAccount(token: string) {
+    return request<void>("/me", { method: "DELETE" }, token);
+  },
   dashboard(token: string) {
     return request<{ totalBalanceCents: number; recentActivity: Activity[]; recentExpenses: Expense[] }>("/dashboard", {}, token);
   },

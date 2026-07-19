@@ -63,7 +63,7 @@ export function DashboardView({
         <Input placeholder="Description" value={expenseForm.description} onChange={(e) => setExpenseForm((s) => ({ ...s, description: e.target.value }))} />
         <Input className="mt-2" type="number" placeholder="Amount in cents" value={expenseForm.amountCents || ""} onChange={(e) => setExpenseForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
         <Input className="mt-2" placeholder="Category" value={expenseForm.category} onChange={(e) => setExpenseForm((s) => ({ ...s, category: e.target.value }))} />
-        <select className="mt-2 h-10 w-full rounded-xl border border-ink/20 bg-white px-3 text-sm" value={expenseForm.groupId} onChange={(e) => setExpenseForm((s) => ({ ...s, groupId: e.target.value }))}>
+        <select className="mt-2 h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm" value={expenseForm.groupId} onChange={(e) => setExpenseForm((s) => ({ ...s, groupId: e.target.value }))}>
           <option value="">No group</option>
           {groups.map((group) => (
             <option key={group.id} value={group.id}>{group.name}</option>
@@ -74,7 +74,7 @@ export function DashboardView({
 
       <Card>
         <p className="mb-2 text-xs uppercase tracking-[0.2em]">Settle Up</p>
-        <select className="h-10 w-full rounded-xl border border-ink/20 bg-white px-3 text-sm" value={settleForm.receiverId} onChange={(e) => setSettleForm((s) => ({ ...s, receiverId: e.target.value }))}>
+        <select className="h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm" value={settleForm.receiverId} onChange={(e) => setSettleForm((s) => ({ ...s, receiverId: e.target.value }))}>
           <option value="">Select friend</option>
           {friends.map((friend) => (
             <option key={friend.id} value={friend.id}>{friend.name}</option>

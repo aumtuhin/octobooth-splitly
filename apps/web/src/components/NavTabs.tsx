@@ -1,8 +1,8 @@
 import { Button } from "./ui/button";
 
-export type View = "dashboard" | "friends" | "groups" | "expenses" | "activity";
+export type View = "dashboard" | "friends" | "groups" | "expenses" | "activity" | "profile";
 
-const VIEWS: View[] = ["dashboard", "friends", "groups", "expenses", "activity"];
+const VIEWS: View[] = ["dashboard", "friends", "groups", "expenses", "activity", "profile"];
 
 type Props = {
   view: View;

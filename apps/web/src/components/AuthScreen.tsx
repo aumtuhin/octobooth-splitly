@@ -33,9 +33,9 @@ export function AuthScreen({ mode, onModeChange, authForm, setAuthForm, error, l
             <h1 className="mt-3 font-display text-4xl leading-tight md:text-5xl">Shared expenses without friendship debt</h1>
           </div>
           <div className="mt-10 grid gap-3 text-sm">
-            <p className="rounded-xl bg-white/70 p-3">Track every bill by group, trip, or household.</p>
-            <p className="rounded-xl bg-white/70 p-3">Split by equal, exact, percentage, or shares.</p>
-            <p className="rounded-xl bg-white/70 p-3">Simplify who pays whom with one tap.</p>
+            <p className="rounded-xl bg-surf/70 p-3">Track every bill by group, trip, or household.</p>
+            <p className="rounded-xl bg-surf/70 p-3">Split by equal, exact, percentage, or shares.</p>
+            <p className="rounded-xl bg-surf/70 p-3">Simplify who pays whom with one tap.</p>
           </div>
         </Card>
 
