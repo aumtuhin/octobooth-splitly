@@ -40,9 +40,9 @@ export function GroupsView({ groups, groupForm, setGroupForm, onCreateGroup, onS
               <p className="font-semibold">{group.name}</p>
               <p className="text-sm text-ink/70">{group.description || "No description"}</p>
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full bg-white px-2 py-1">{group.memberCount} members</span>
-                <span className="rounded-full bg-white px-2 py-1">{group.expenseCount} expenses</span>
-                <span className="rounded-full bg-white px-2 py-1">{formatMoney(group.totalSpentCents)}</span>
+                <span className="rounded-full bg-surf px-2 py-1">{group.memberCount} members</span>
+                <span className="rounded-full bg-surf px-2 py-1">{group.expenseCount} expenses</span>
+                <span className="rounded-full bg-surf px-2 py-1">{formatMoney(group.totalSpentCents)}</span>
               </div>
             </button>
           ))}

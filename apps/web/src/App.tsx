@@ -11,7 +11,9 @@ import { GroupsView, type GroupFormState } from "./components/GroupsView";
 import { ExpensesView } from "./components/ExpensesView";
 import { ActivityView } from "./components/ActivityView";
 import { GroupDetail } from "./components/GroupDetail";
+import { ProfileView } from "./components/ProfileView";
 import { clearStoredToken, getStoredToken, setStoredToken } from "./lib/storage";
+import { useTheme } from "./lib/theme";
 
 type DashboardData = {
   totalBalanceCents: number;
@@ -20,6 +22,7 @@ type DashboardData = {
 };
 
 function App() {
+  const { theme, setTheme } = useTheme();
   const [token, setToken] = useState<string>("");
   const [tokenChecked, setTokenChecked] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
@@ -262,9 +265,15 @@ function App() {
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
         <AppHeader
           userName={user?.name}
+          avatarStyle={user?.avatarStyle}
+          avatarSeed={user?.avatarSeed}
           netBalanceCents={dashboard?.totalBalanceCents ?? 0}
           currency={user?.defaultCurrency}
           onLogout={logout}
+          onOpenProfile={() => {
+            setView("profile");
+            setSelectedGroupId(null);
+          }}
         />
 
         <NavTabs
@@ -330,6 +339,17 @@ function App() {
         {view === "expenses" && <ExpensesView expenses={expenses} userNameById={userNameById} />}
 
         {view === "activity" && <ActivityView activity={activity} />}
+
+        {view === "profile" && user && (
+          <ProfileView
+            token={token}
+            user={user}
+            onUserUpdated={(u) => setUser(u)}
+            onLoggedOut={logout}
+            theme={theme}
+            setTheme={setTheme}
+          />
+        )}
 
         <div className="pointer-events-none fixed bottom-4 right-4 flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs text-surf shadow-xl">
           <HandCoins size={14} />

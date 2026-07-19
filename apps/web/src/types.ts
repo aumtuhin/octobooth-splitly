@@ -4,7 +4,10 @@ export type User = {
   email: string;
   username: string;
   avatarUrl?: string | null;
+  avatarStyle?: string | null;
+  avatarSeed?: string | null;
   defaultCurrency: string;
+  createdAt?: string;
 };
 
 export type Friend = {

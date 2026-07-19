@@ -4,7 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>web</title>
+    <title>Splitly</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong theme.
+      // On web, @capacitor/preferences stores under the CapacitorStorage.* localStorage key.
+      (function () {
+        try {
+          var t = localStorage.getItem("CapacitorStorage.splitly_theme") || "system";
+          var dark = t === "dark" || (t === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

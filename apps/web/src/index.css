@@ -8,6 +8,24 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Light theme tokens (space-separated RGB channels for Tailwind's rgb(var / a)). */
+  --color-shell: 246 245 240;
+  --color-ink: 16 20 24;
+  --color-surf: 255 255 255;
+  --color-peach: 245 180 135;
+  --color-aqua: 126 201 195;
+  --color-sage: 145 180 137;
+}
+
+/* Dark theme tokens (must come after :root to win on equal specificity). */
+.dark {
+  --color-shell: 15 18 22;
+  --color-ink: 236 239 242;
+  --color-surf: 30 35 41;
+  --color-peach: 224 152 100;
+  --color-aqua: 90 173 167;
+  --color-sage: 120 156 114;
 }
 
 * {
@@ -16,11 +34,11 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 10% 10%, rgba(245, 180, 135, 0.4), transparent 35%),
-    radial-gradient(circle at 90% 20%, rgba(126, 201, 195, 0.35), transparent 40%),
-    linear-gradient(180deg, #faf9f5 0%, #f6f5f0 100%);
-  color: #101418;
+  background-color: rgb(var(--color-shell));
+  background-image:
+    radial-gradient(circle at 10% 10%, rgb(var(--color-peach) / 0.4), transparent 35%),
+    radial-gradient(circle at 90% 20%, rgb(var(--color-aqua) / 0.35), transparent 40%);
+  color: rgb(var(--color-ink));
 }
 
 #root {

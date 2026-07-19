@@ -171,7 +171,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
           <Input className="mt-2" type="number" placeholder="Amount in cents" value={expenseForm.amountCents || ""} onChange={(e) => setExpenseForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
           <Input className="mt-2" placeholder="Category" value={expenseForm.category} onChange={(e) => setExpenseForm((s) => ({ ...s, category: e.target.value }))} />
           <select
-            className="mt-2 h-10 w-full rounded-xl border border-ink/20 bg-white px-3 text-sm"
+            className="mt-2 h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm"
             value={expenseForm.payerId}
             onChange={(e) => setExpenseForm((s) => ({ ...s, payerId: e.target.value }))}
           >
@@ -212,7 +212,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
                   <Input type="number" value={editForm.amountCents || ""} onChange={(e) => setEditForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
                   <Input placeholder="Category" value={editForm.category} onChange={(e) => setEditForm((s) => ({ ...s, category: e.target.value }))} />
                   <select
-                    className="h-10 w-full rounded-xl border border-ink/20 bg-white px-3 text-sm"
+                    className="h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm"
                     value={editForm.payerId}
                     onChange={(e) => setEditForm((s) => ({ ...s, payerId: e.target.value }))}
                   >
