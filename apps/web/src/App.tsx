@@ -94,9 +94,14 @@ function App() {
     if (!token) return;
     setLoading(true);
     refreshData(token)
-      .catch((err: Error) => {
-        void clearStoredToken();
-        setToken("");
+      .catch((err: Error & { status?: number }) => {
+        // Only force a logout when the token is genuinely rejected (401).
+        // Transient failures (5xx, network) should keep the session so a
+        // hard refresh during a backend hiccup doesn't sign the user out.
+        if (err.status === 401) {
+          void clearStoredToken();
+          setToken("");
+        }
         setError(err.message);
       })
       .finally(() => setLoading(false));

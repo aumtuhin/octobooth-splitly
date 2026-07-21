@@ -46,7 +46,9 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({ message: "Request failed" }));
-        throw new Error(data.message ?? "Request failed");
+        const error = new Error(data.message ?? "Request failed") as Error & { status?: number };
+        error.status = response.status;
+        throw error;
       }
 
       resolvedApiBase = base;
