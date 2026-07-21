@@ -1,5 +1,6 @@
 import { Receipt } from "lucide-react";
 import { formatMoney } from "../lib/api";
+import { amountPlaceholder } from "../lib/money";
 import type { Activity, Expense, Friend, Group, SimplifiedDebt, User } from "../types";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -7,7 +8,7 @@ import { Input } from "./ui/input";
 
 export type ExpenseFormState = {
   description: string;
-  amountCents: number;
+  amount: string;
   currency: string;
   splitType: "EQUAL";
   category: string;
@@ -17,7 +18,7 @@ export type ExpenseFormState = {
 
 export type SettleFormState = {
   receiverId: string;
-  amountCents: number;
+  amount: string;
   note: string;
 };
 
@@ -61,7 +62,7 @@ export function DashboardView({
       <Card>
         <p className="mb-2 text-xs uppercase tracking-[0.2em]">Quick Add Expense</p>
         <Input placeholder="Description" value={expenseForm.description} onChange={(e) => setExpenseForm((s) => ({ ...s, description: e.target.value }))} />
-        <Input className="mt-2" type="number" placeholder="Amount in cents" value={expenseForm.amountCents || ""} onChange={(e) => setExpenseForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
+        <Input className="mt-2" inputMode="decimal" placeholder={`Amount (e.g. ${amountPlaceholder(user?.defaultCurrency)})`} value={expenseForm.amount} onChange={(e) => setExpenseForm((s) => ({ ...s, amount: e.target.value }))} />
         <Input className="mt-2" placeholder="Category" value={expenseForm.category} onChange={(e) => setExpenseForm((s) => ({ ...s, category: e.target.value }))} />
         <select className="mt-2 h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm" value={expenseForm.groupId} onChange={(e) => setExpenseForm((s) => ({ ...s, groupId: e.target.value }))}>
           <option value="">No group</option>
@@ -80,7 +81,7 @@ export function DashboardView({
             <option key={friend.id} value={friend.id}>{friend.name}</option>
           ))}
         </select>
-        <Input className="mt-2" type="number" placeholder="Amount in cents" value={settleForm.amountCents || ""} onChange={(e) => setSettleForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
+        <Input className="mt-2" inputMode="decimal" placeholder={`Amount (e.g. ${amountPlaceholder(user?.defaultCurrency)})`} value={settleForm.amount} onChange={(e) => setSettleForm((s) => ({ ...s, amount: e.target.value }))} />
         <Input className="mt-2" placeholder="Note" value={settleForm.note} onChange={(e) => setSettleForm((s) => ({ ...s, note: e.target.value }))} />
         <Button className="mt-3 w-full" variant="secondary" onClick={onSettleUp}>Record settlement</Button>
       </Card>

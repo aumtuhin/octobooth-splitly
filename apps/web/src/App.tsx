@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRightLeft, HandCoins } from "lucide-react";
+import { HandCoins } from "lucide-react";
 import { api } from "./lib/api";
+import { parseAmountToCents } from "./lib/money";
 import type { Activity, Expense, Friend, FriendRequestsPayload, Group, SimplifiedDebt, User } from "./types";
 import { AuthScreen, type AuthFormState, type AuthMode } from "./components/AuthScreen";
 import { AppHeader } from "./components/AppHeader";
@@ -44,16 +45,15 @@ function App() {
     name: "",
     username: "",
     email: "",
-    password: "",
-    defaultCurrency: "USD"
+    password: ""
   });
 
   const [friendRecipient, setFriendRecipient] = useState("");
   const [groupForm, setGroupForm] = useState<GroupFormState>({ name: "", description: "" });
-  const [settleForm, setSettleForm] = useState<SettleFormState>({ receiverId: "", amountCents: 0, note: "" });
+  const [settleForm, setSettleForm] = useState<SettleFormState>({ receiverId: "", amount: "", note: "" });
   const [expenseForm, setExpenseForm] = useState<ExpenseFormState>({
     description: "",
-    amountCents: 0,
+    amount: "",
     currency: "USD",
     splitType: "EQUAL",
     category: "food",
@@ -125,8 +125,7 @@ function App() {
               name: authForm.name,
               username: authForm.username,
               email: authForm.email,
-              password: authForm.password,
-              defaultCurrency: authForm.defaultCurrency
+              password: authForm.password
             })
           : await api.login({ email: authForm.email, password: authForm.password });
 
@@ -185,7 +184,13 @@ function App() {
   }
 
   async function createExpense() {
-    if (!token || !user || expenseForm.amountCents <= 0 || !expenseForm.description.trim()) return;
+    if (!token || !user || !expenseForm.description.trim()) return;
+
+    const amountCents = parseAmountToCents(expenseForm.amount);
+    if (!amountCents || amountCents <= 0) {
+      setError("Enter a valid amount, e.g. 10.50");
+      return;
+    }
 
     const participantIds = Array.from(new Set([user.id, ...friends.map((f) => f.id)]));
     if (!participantIds.length) return;
@@ -194,7 +199,7 @@ function App() {
     try {
       await api.createExpense(token, {
         description: expenseForm.description,
-        amountCents: expenseForm.amountCents,
+        amountCents,
         currency: expenseForm.currency,
         date: new Date().toISOString(),
         payerId: user.id,
@@ -206,7 +211,7 @@ function App() {
       });
       setExpenseForm({
         description: "",
-        amountCents: 0,
+        amount: "",
         currency: user.defaultCurrency,
         splitType: "EQUAL",
         category: "food",
@@ -220,18 +225,25 @@ function App() {
   }
 
   async function settleUp() {
-    if (!token || !user || !settleForm.receiverId || settleForm.amountCents <= 0) return;
+    if (!token || !user || !settleForm.receiverId) return;
+
+    const amountCents = parseAmountToCents(settleForm.amount);
+    if (!amountCents || amountCents <= 0) {
+      setError("Enter a valid amount, e.g. 10.50");
+      return;
+    }
+
     setError("");
     try {
       await api.settle(token, {
         payerId: user.id,
         receiverId: settleForm.receiverId,
-        amountCents: settleForm.amountCents,
+        amountCents,
         currency: user.defaultCurrency,
         date: new Date().toISOString(),
         note: settleForm.note
       });
-      setSettleForm({ receiverId: "", amountCents: 0, note: "" });
+      setSettleForm({ receiverId: "", amount: "", note: "" });
       await refreshData(token);
     } catch (err) {
       setError((err as Error).message);
@@ -353,8 +365,7 @@ function App() {
 
         <div className="pointer-events-none fixed bottom-4 right-4 flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs text-surf shadow-xl">
           <HandCoins size={14} />
-          <ArrowRightLeft size={14} />
-          Always split in cents
+          Split fairly, settle easily
         </div>
       </div>
     </main>
