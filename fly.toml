@@ -30,12 +30,13 @@ primary_region = "ams"
   source = "splitly_data"
   destination = "/data"
 
-# NOTE: migrations are intentionally NOT run via a [deploy] release_command.
-# Fly release-command VMs do not mount volumes, so `prisma migrate deploy`
-# there would apply the schema to a throwaway filesystem, leaving the real
-# SQLite DB on the /data volume empty. Instead the container runs
-# `prisma migrate deploy` at startup (see apps/api/Dockerfile CMD), where the
-# volume IS mounted. `migrate deploy` is idempotent, so this is safe on every boot.
+# Run migrations once per deploy, before the new version goes live. The
+# database is Neon Postgres (not the /data volume), so the old caveat about
+# release VMs lacking the volume no longer applies. Keeping migrations out of
+# the app's startup command means the server starts listening immediately on
+# cold starts, even while a suspended Neon database is waking up.
+[deploy]
+  release_command = "npx prisma migrate deploy"
 
 [http_service]
   internal_port = 4000
