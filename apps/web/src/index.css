@@ -43,4 +43,20 @@ body {
 
 #root {
   min-height: 100vh;
+  /* Dynamic viewport height so the on-screen keyboard doesn't push
+     content off the bottom of the screen on mobile browsers. */
+  min-height: 100dvh;
+}
+
+/* Prevent iOS Safari from zooming in (and horizontally overflowing the
+   layout) when a form field is focused. iOS zooms whenever the focused
+   control's font-size is below 16px, so bump form controls to 16px on
+   small screens. This keeps pinch-to-zoom enabled, unlike a
+   maximum-scale viewport lock. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
