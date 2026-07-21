@@ -50,13 +50,14 @@ body {
 
 /* Prevent iOS Safari from zooming in (and horizontally overflowing the
    layout) when a form field is focused. iOS zooms whenever the focused
-   control's font-size is below 16px, so bump form controls to 16px on
-   small screens. This keeps pinch-to-zoom enabled, unlike a
-   maximum-scale viewport lock. */
+   control's font-size is below 16px, so force form controls to 16px on
+   small screens. The !important is needed to beat Tailwind's `text-sm`
+   utility class, which otherwise outranks a plain element selector. This
+   keeps pinch-to-zoom enabled, unlike a maximum-scale viewport lock. */
 @media (max-width: 640px) {
   input,
   select,
   textarea {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 }
