@@ -65,7 +65,7 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 export const api = {
-  signup(payload: { name: string; username: string; email: string; password: string; defaultCurrency: string }) {
+  signup(payload: { name: string; username: string; email: string; password: string }) {
     return request<AuthResponse>("/auth/signup", { method: "POST", body: JSON.stringify(payload) });
   },
   login(payload: { email: string; password: string }) {
@@ -134,6 +134,6 @@ export const api = {
   }
 };
 
-export function formatMoney(cents: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(cents / 100);
-}
+// Re-exported so existing imports (`import { formatMoney } from "../lib/api"`)
+// keep working; the implementation lives in lib/money.ts.
+export { formatMoney } from "./money";

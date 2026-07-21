@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Pencil, Plus, Trash2, Users as UsersIcon } from "lucide-react";
 import { api, formatMoney } from "../lib/api";
+import { amountPlaceholder, centsToAmount, parseAmountToCents } from "../lib/money";
 import type { Expense, GroupDetail as GroupDetailType, SimplifiedDebt } from "../types";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -17,7 +18,7 @@ type Props = {
 
 const emptyExpenseForm = {
   description: "",
-  amountCents: 0,
+  amount: "",
   category: "general",
   note: "",
   payerId: ""
@@ -56,12 +57,17 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
   }, [groupId]);
 
   async function addExpense() {
-    if (!group || !expenseForm.description.trim() || expenseForm.amountCents <= 0) return;
+    if (!group || !expenseForm.description.trim()) return;
+    const amountCents = parseAmountToCents(expenseForm.amount);
+    if (!amountCents || amountCents <= 0) {
+      setError("Enter a valid amount, e.g. 10.50");
+      return;
+    }
     setError("");
     try {
       await api.createExpense(token, {
         description: expenseForm.description,
-        amountCents: expenseForm.amountCents,
+        amountCents,
         currency: defaultCurrency,
         date: new Date().toISOString(),
         payerId: expenseForm.payerId || currentUserId,
@@ -83,7 +89,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
     setEditingId(expense.id);
     setEditForm({
       description: expense.description,
-      amountCents: expense.amountCents,
+      amount: centsToAmount(expense.amountCents),
       category: expense.category ?? "",
       note: expense.note ?? "",
       payerId: expense.payerId
@@ -91,12 +97,17 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
   }
 
   async function saveEdit(expense: Expense) {
-    if (!group || !editForm.description.trim() || editForm.amountCents <= 0) return;
+    if (!group || !editForm.description.trim()) return;
+    const amountCents = parseAmountToCents(editForm.amount);
+    if (!amountCents || amountCents <= 0) {
+      setError("Enter a valid amount, e.g. 10.50");
+      return;
+    }
     setError("");
     try {
       await api.updateExpense(token, expense.id, {
         description: editForm.description,
-        amountCents: editForm.amountCents,
+        amountCents,
         category: editForm.category,
         note: editForm.note,
         payerId: editForm.payerId,
@@ -168,7 +179,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
         <Card>
           <p className="mb-2 text-xs uppercase tracking-[0.2em]">Add Expense</p>
           <Input placeholder="Description" value={expenseForm.description} onChange={(e) => setExpenseForm((s) => ({ ...s, description: e.target.value }))} />
-          <Input className="mt-2" type="number" placeholder="Amount in cents" value={expenseForm.amountCents || ""} onChange={(e) => setExpenseForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
+          <Input className="mt-2" inputMode="decimal" placeholder={`Amount (e.g. ${amountPlaceholder(defaultCurrency)})`} value={expenseForm.amount} onChange={(e) => setExpenseForm((s) => ({ ...s, amount: e.target.value }))} />
           <Input className="mt-2" placeholder="Category" value={expenseForm.category} onChange={(e) => setExpenseForm((s) => ({ ...s, category: e.target.value }))} />
           <select
             className="mt-2 h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm"
@@ -209,7 +220,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
               {editingId === expense.id ? (
                 <div className="space-y-2">
                   <Input value={editForm.description} onChange={(e) => setEditForm((s) => ({ ...s, description: e.target.value }))} />
-                  <Input type="number" value={editForm.amountCents || ""} onChange={(e) => setEditForm((s) => ({ ...s, amountCents: Number(e.target.value) || 0 }))} />
+                  <Input inputMode="decimal" placeholder={`Amount (e.g. ${amountPlaceholder(defaultCurrency)})`} value={editForm.amount} onChange={(e) => setEditForm((s) => ({ ...s, amount: e.target.value }))} />
                   <Input placeholder="Category" value={editForm.category} onChange={(e) => setEditForm((s) => ({ ...s, category: e.target.value }))} />
                   <select
                     className="h-10 w-full rounded-xl border border-ink/20 bg-surf px-3 text-sm"
