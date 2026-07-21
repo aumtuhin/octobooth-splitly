@@ -29,6 +29,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
   const [simplified, setSimplified] = useState<SimplifiedDebt[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [expenseForm, setExpenseForm] = useState(emptyExpenseForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(emptyExpenseForm);
@@ -56,6 +57,12 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const id = setTimeout(() => setNotice(""), 3000);
+    return () => clearTimeout(id);
+  }, [notice]);
+
   async function addExpense() {
     if (!group || !expenseForm.description.trim()) return;
     const amountCents = parseAmountToCents(expenseForm.amount);
@@ -80,6 +87,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
       setExpenseForm({ ...emptyExpenseForm, payerId: currentUserId });
       await load();
       onChanged();
+      setNotice("Expense added.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -117,6 +125,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
       setEditingId(null);
       await load();
       onChanged();
+      setNotice("Expense updated.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -125,10 +134,12 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
   async function removeExpense(id: string) {
     if (!window.confirm("Delete this expense?")) return;
     setError("");
+    setNotice("");
     try {
       await api.deleteExpense(token, id);
       await load();
       onChanged();
+      setNotice("Expense deleted.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -153,6 +164,11 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
       </Button>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {notice && (
+        <p className="rounded-xl bg-sage/20 px-3 py-2 text-sm text-sage" role="status" aria-live="polite">
+          {notice}
+        </p>
+      )}
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-2">

@@ -31,6 +31,7 @@ function App() {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [notice, setNotice] = useState<string>("");
 
   const [user, setUser] = useState<User | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -107,6 +108,12 @@ function App() {
       .finally(() => setLoading(false));
   }, [token]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const id = setTimeout(() => setNotice(""), 3000);
+    return () => clearTimeout(id);
+  }, [notice]);
+
   const userNameById = useMemo(() => {
     const map = new Map<string, string>();
     if (user) map.set(user.id, user.name);
@@ -153,10 +160,12 @@ function App() {
   async function createFriendRequest() {
     if (!token || !friendRecipient.trim()) return;
     setError("");
+    setNotice("");
     try {
       await api.sendFriendRequest(token, friendRecipient.trim());
       setFriendRecipient("");
       await refreshData(token);
+      setNotice("Friend request sent.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -165,9 +174,11 @@ function App() {
   async function respondFriendRequest(id: string, action: "accept" | "decline") {
     if (!token) return;
     setError("");
+    setNotice("");
     try {
       await api.respondFriendRequest(token, id, action);
       await refreshData(token);
+      setNotice(action === "accept" ? "Friend request accepted." : "Friend request declined.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -176,6 +187,7 @@ function App() {
   async function createGroup() {
     if (!token || !groupForm.name.trim()) return;
     setError("");
+    setNotice("");
     try {
       await api.createGroup(token, {
         name: groupForm.name,
@@ -183,6 +195,7 @@ function App() {
       });
       setGroupForm({ name: "", description: "" });
       await refreshData(token);
+      setNotice("Group created.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -201,6 +214,7 @@ function App() {
     if (!participantIds.length) return;
 
     setError("");
+    setNotice("");
     try {
       await api.createExpense(token, {
         description: expenseForm.description,
@@ -224,6 +238,7 @@ function App() {
         groupId: ""
       });
       await refreshData(token);
+      setNotice("Expense added.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -239,6 +254,7 @@ function App() {
     }
 
     setError("");
+    setNotice("");
     try {
       await api.settle(token, {
         payerId: user.id,
@@ -250,6 +266,7 @@ function App() {
       });
       setSettleForm({ receiverId: "", amount: "", note: "" });
       await refreshData(token);
+      setNotice("Settlement recorded.");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -302,6 +319,11 @@ function App() {
         />
 
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {notice && (
+          <p className="mb-4 rounded-xl bg-sage/20 px-3 py-2 text-sm text-sage" role="status" aria-live="polite">
+            {notice}
+          </p>
+        )}
         {loading && <p className="mb-4 text-sm">Loading latest data...</p>}
 
         {view === "dashboard" && (
