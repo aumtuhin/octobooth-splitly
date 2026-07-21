@@ -26,6 +26,7 @@ COPY apps/api/prisma.config.ts ./apps/api/prisma.config.ts
 WORKDIR /app/apps/api
 EXPOSE 4000
 
-# Apply pending migrations on the app machine (where the /data volume is
-# mounted), then start the server. migrate deploy is idempotent.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/server.js"]
+# Start the server immediately so the machine becomes reachable fast on cold
+# starts. Migrations run in the Fly release_command (see fly.toml), not here,
+# so a sleeping/slow Neon database can't delay the app from listening.
+CMD ["node", "dist/src/server.js"]
