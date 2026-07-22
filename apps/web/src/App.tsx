@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HandCoins } from "lucide-react";
 import { api } from "./lib/api";
 import { parseAmountToCents } from "./lib/money";
+import { ADD_FRIEND_PARAM } from "./lib/friendLink";
 import type { Activity, Expense, Friend, FriendRequestsPayload, Group, SimplifiedDebt, User } from "./types";
 import { AuthScreen, type AuthFormState, type AuthMode } from "./components/AuthScreen";
 import { AppHeader } from "./components/AppHeader";
@@ -32,6 +33,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [notice, setNotice] = useState<string>("");
+  const [pendingAdd, setPendingAdd] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get(ADD_FRIEND_PARAM)
+  );
 
   const [user, setUser] = useState<User | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -113,6 +117,36 @@ function App() {
     const id = setTimeout(() => setNotice(""), 3000);
     return () => clearTimeout(id);
   }, [notice]);
+
+  // Handle a scanned friend QR / invite link (?add=<username>): once the
+  // visitor is logged in, send them a friend request to that user, then strip
+  // the param from the URL so it isn't reprocessed on the next render.
+  useEffect(() => {
+    if (!token || !user || !pendingAdd) return;
+    const target = pendingAdd;
+    const clearParam = () => {
+      setPendingAdd(null);
+      const url = new URL(window.location.href);
+      url.searchParams.delete(ADD_FRIEND_PARAM);
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    };
+    if (target.toLowerCase() === user.username.toLowerCase()) {
+      clearParam();
+      return;
+    }
+    (async () => {
+      try {
+        await api.sendFriendRequest(token, target);
+        await refreshData(token);
+        setNotice(`Friend request sent to @${target}.`);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        clearParam();
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, user, pendingAdd]);
 
   const userNameById = useMemo(() => {
     const map = new Map<string, string>();

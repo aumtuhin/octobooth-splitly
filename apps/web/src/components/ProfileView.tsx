@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Dices, Check } from "lucide-react";
+import { Dices, Check, Copy, QrCode as QrCodeIcon } from "lucide-react";
 import { api } from "../lib/api";
 import type { User } from "../types";
 import { AVATAR_STYLES, avatarStyleLabel, randomAvatar, type AvatarStyle } from "../lib/avatar";
 import type { Theme } from "../lib/theme";
+import { friendAddUrl } from "../lib/friendLink";
 import { Avatar } from "./Avatar";
+import { QrCode } from "./QrCode";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -38,6 +40,19 @@ export function ProfileView({ token, user, onUserUpdated, onLoggedOut, theme, se
 
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [pwMsg, setPwMsg] = useState("");
+
+  const [linkCopied, setLinkCopied] = useState(false);
+  const addUrl = friendAddUrl(user.username);
+
+  async function copyAddLink() {
+    try {
+      await navigator.clipboard.writeText(addUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable (e.g. insecure context); the link stays visible to copy manually.
+    }
+  }
 
   async function saveProfile() {
     if (!name.trim() || !username.trim()) return;
@@ -178,6 +193,30 @@ export function ProfileView({ token, user, onUserUpdated, onLoggedOut, theme, se
             <span className="text-ink/60">Member since</span>
             <span>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}</span>
           </p>
+        </div>
+      </Card>
+
+      {/* Friend QR code */}
+      <Card>
+        <p className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.2em]">
+          <QrCodeIcon size={14} /> Add me as a friend
+        </p>
+        <div className="flex flex-col items-center gap-3">
+          <QrCode value={addUrl} />
+          <p className="text-sm text-ink/70">
+            Scan to send a friend request to <span className="font-semibold text-ink">@{user.username}</span>
+          </p>
+          <Button variant="outline" className="w-full" onClick={copyAddLink}>
+            {linkCopied ? (
+              <>
+                <Check size={16} className="mr-2" /> Link copied
+              </>
+            ) : (
+              <>
+                <Copy size={16} className="mr-2" /> Copy invite link
+              </>
+            )}
+          </Button>
         </div>
       </Card>
 
