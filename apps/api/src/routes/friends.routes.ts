@@ -111,6 +111,32 @@ router.post("/requests", authMiddleware, async (req, res, next) => {
     if (!recipient) return res.status(404).json({ message: "Recipient not found" });
     if (recipient.id === myId) return res.status(400).json({ message: "Cannot add yourself" });
 
+    // A friendship is a single directional record. Check both directions so we
+    // don't re-add an existing friend or create a duplicate pending request.
+    const existing = await prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { senderId: myId, receiverId: recipient.id },
+          { senderId: recipient.id, receiverId: myId }
+        ]
+      }
+    });
+
+    if (existing?.status === FriendRequestStatus.ACCEPTED) {
+      return res.status(200).json({ status: "already_friends", message: `You are already friends with @${recipient.username}.` });
+    }
+    if (existing?.status === FriendRequestStatus.PENDING) {
+      const mine = existing.senderId === myId;
+      return res.status(200).json({
+        status: mine ? "already_pending" : "incoming_pending",
+        message: mine
+          ? `Friend request already sent to @${recipient.username}.`
+          : `@${recipient.username} already sent you a request. Accept it from your requests.`
+      });
+    }
+
+    // No relationship yet, or a previously declined one: (re)send a pending
+    // request from me. Reuses my-direction record if present, else creates one.
     const request = await prisma.friendRequest.upsert({
       where: { senderId_receiverId: { senderId: myId, receiverId: recipient.id } },
       update: { status: FriendRequestStatus.PENDING },
@@ -125,7 +151,7 @@ router.post("/requests", authMiddleware, async (req, res, next) => {
       }
     });
 
-    return res.status(201).json(request);
+    return res.status(201).json({ status: "sent", message: `Friend request sent to @${recipient.username}.`, request });
   } catch (error) {
     return next(error);
   }

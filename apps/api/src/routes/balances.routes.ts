@@ -38,7 +38,19 @@ router.get("/", authMiddleware, async (req, res, next) => {
     }
 
     const simplified = simplifyDebts(ledger);
-    return res.json({ simplified });
+
+    // Include the display details of everyone referenced in the simplified
+    // debts so the client can show real names instead of raw user IDs, even
+    // for people who aren't the viewer's friends or loaded group members.
+    const ids = Array.from(new Set(simplified.flatMap((d) => [d.fromUserId, d.toUserId])));
+    const users = ids.length
+      ? await prisma.user.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true, username: true }
+        })
+      : [];
+
+    return res.json({ simplified, users });
   } catch (error) {
     return next(error);
   }

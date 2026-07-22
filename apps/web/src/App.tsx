@@ -44,6 +44,7 @@ function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [simplified, setSimplified] = useState<SimplifiedDebt[]>([]);
+  const [debtUsers, setDebtUsers] = useState<Array<{ id: string; name: string; username: string }>>([]);
   const [requests, setRequests] = useState<FriendRequestsPayload>({ incoming: [], outgoing: [] });
 
   const [authForm, setAuthForm] = useState<AuthFormState>({
@@ -85,6 +86,7 @@ function App() {
     setExpenses(ex);
     setActivity(act);
     setSimplified(bal.simplified);
+    setDebtUsers(bal.users);
     setRequests(req);
   }
 
@@ -136,9 +138,9 @@ function App() {
     }
     (async () => {
       try {
-        await api.sendFriendRequest(token, target);
+        const result = await api.sendFriendRequest(token, target);
         await refreshData(token);
-        setNotice(`Friend request sent to @${target}.`);
+        setNotice(result?.message ?? `Friend request sent to @${target}.`);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -150,6 +152,8 @@ function App() {
 
   const userNameById = useMemo(() => {
     const map = new Map<string, string>();
+    // Names from balances first, so friends/group members still take precedence.
+    for (const u of debtUsers) map.set(u.id, u.name);
     if (user) map.set(user.id, user.name);
     for (const f of friends) map.set(f.id, f.name);
     for (const g of groups) {
@@ -158,7 +162,7 @@ function App() {
       }
     }
     return map;
-  }, [friends, groups, user]);
+  }, [friends, groups, user, debtUsers]);
 
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
@@ -196,10 +200,10 @@ function App() {
     setError("");
     setNotice("");
     try {
-      await api.sendFriendRequest(token, friendRecipient.trim());
+      const result = await api.sendFriendRequest(token, friendRecipient.trim());
       setFriendRecipient("");
       await refreshData(token);
-      setNotice("Friend request sent.");
+      setNotice(result?.message ?? "Friend request sent.");
     } catch (err) {
       setError((err as Error).message);
     }
