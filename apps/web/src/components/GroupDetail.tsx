@@ -27,6 +27,7 @@ const emptyExpenseForm = {
 export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, onBack, onChanged }: Props) {
   const [group, setGroup] = useState<GroupDetailType | null>(null);
   const [simplified, setSimplified] = useState<SimplifiedDebt[]>([]);
+  const [debtUsers, setDebtUsers] = useState<Array<{ id: string; name: string; username: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -34,7 +35,9 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(emptyExpenseForm);
 
-  const nameById = new Map((group?.members ?? []).map((m) => [m.id, m.name]));
+  const nameById = new Map<string, string>();
+  for (const u of debtUsers) nameById.set(u.id, u.name);
+  for (const m of group?.members ?? []) nameById.set(m.id, m.name);
 
   async function load() {
     setLoading(true);
@@ -43,6 +46,7 @@ export function GroupDetail({ token, groupId, currentUserId, defaultCurrency, on
       const [g, bal] = await Promise.all([api.getGroup(token, groupId), api.balances(token, groupId)]);
       setGroup(g);
       setSimplified(bal.simplified);
+      setDebtUsers(bal.users);
       setExpenseForm((s) => (s.payerId ? s : { ...s, payerId: currentUserId }));
     } catch (err) {
       setError((err as Error).message);

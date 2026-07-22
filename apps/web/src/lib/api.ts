@@ -126,7 +126,10 @@ export const api = {
   },
   balances(token: string, groupId?: string) {
     const qs = groupId ? `?groupId=${groupId}` : "";
-    return request<{ simplified: Array<{ fromUserId: string; toUserId: string; amountCents: number }> }>(`/balances${qs}`, {}, token);
+    return request<{
+      simplified: Array<{ fromUserId: string; toUserId: string; amountCents: number }>;
+      users: Array<{ id: string; name: string; username: string }>;
+    }>(`/balances${qs}`, {}, token);
   },
   activity(token: string) {
     return request<Activity[]>("/activity", {}, token);
