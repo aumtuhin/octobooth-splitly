@@ -98,7 +98,11 @@ export const api = {
     return request<{ incoming: Array<Record<string, unknown>>; outgoing: Array<Record<string, unknown>> }>("/friends/requests", {}, token);
   },
   sendFriendRequest(token: string, recipient: string) {
-    return request("/friends/requests", { method: "POST", body: JSON.stringify({ recipient }) }, token);
+    return request<{ status: string; message: string }>(
+      "/friends/requests",
+      { method: "POST", body: JSON.stringify({ recipient }) },
+      token
+    );
   },
   respondFriendRequest(token: string, id: string, action: "accept" | "decline") {
     return request(`/friends/requests/${id}`, { method: "POST", body: JSON.stringify({ action }) }, token);

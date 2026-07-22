@@ -138,9 +138,9 @@ function App() {
     }
     (async () => {
       try {
-        await api.sendFriendRequest(token, target);
+        const result = await api.sendFriendRequest(token, target);
         await refreshData(token);
-        setNotice(`Friend request sent to @${target}.`);
+        setNotice(result?.message ?? `Friend request sent to @${target}.`);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -200,10 +200,10 @@ function App() {
     setError("");
     setNotice("");
     try {
-      await api.sendFriendRequest(token, friendRecipient.trim());
+      const result = await api.sendFriendRequest(token, friendRecipient.trim());
       setFriendRecipient("");
       await refreshData(token);
-      setNotice("Friend request sent.");
+      setNotice(result?.message ?? "Friend request sent.");
     } catch (err) {
       setError((err as Error).message);
     }
